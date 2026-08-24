@@ -1,0 +1,173 @@
+<resources>
+    <string name="app_name">Daily Focus</string>
+
+    <!-- Home screen -->
+    <string name="home_main_focus">Main focus</string>
+    <string name="home_set_main_focus">Set today\'s main focus</string>
+    <string name="home_secondary_tasks">Secondary tasks</string>
+    <string name="home_add_task_left">Add task (%1$d left)</string>
+    <string name="home_stats">Stats</string>
+    <string name="home_today_progress">Today\'s progress</string>
+    <string name="home_sessions_today">Sessions today: %1$d</string>
+    <string name="home_new_session">New session</string>
+    <string name="home_take_break">Take a break</string>
+    <string name="home_take_long_break">Take a long break</string>
+    <string name="home_pause">Pause</string>
+    <string name="home_resume">Resume</string>
+    <string name="home_start">Start</string>
+    <string name="home_add_secondary_task_title">Add a secondary task</string>
+    <string name="home_task_field_label">Task</string>
+    <string name="home_add_task_button">Add task</string>
+    <string name="home_focus_time_label">Focus time</string>
+    <string name="home_completed_label">Completed</string>
+    <string name="home_sessions_suffix">%1$d sessions</string>
+    <string name="home_minutes_suffix">%1$dm</string>
+
+    <!-- Timer modes -->
+    <string name="timer_mode_focus">Focus</string>
+    <string name="timer_mode_break">Break</string>
+    <string name="timer_mode_long_break">Long break</string>
+
+    <!-- Timer settings sheet -->
+    <string name="timer_settings_title">Timer settings</string>
+    <string name="timer_settings_focus_duration">Focus duration</string>
+    <string name="timer_settings_break_duration">Break duration</string>
+    <string name="timer_settings_long_break_duration">Long break duration</string>
+    <string name="timer_settings_long_break_hint">Used automatically every 4th focus session</string>
+    <string name="timer_settings_custom_focus">Custom minutes (1-120)</string>
+    <string name="timer_settings_custom_break">Custom minutes (1-30)</string>
+    <string name="timer_settings_custom_long_break">Custom minutes (1-60)</string>
+    <string name="timer_settings_auto_start_title">Auto-start next session</string>
+    <string name="timer_settings_auto_start_desc">Chains focus → break → focus without tapping Start</string>
+    <string name="timer_settings_done">Done</string>
+
+    <!-- Content descriptions -->
+    <string name="cd_apply">Apply</string>
+    <string name="cd_reset">Reset</string>
+    <string name="cd_delete_task">Delete task</string>
+    <string name="cd_task_done">Done</string>
+    <string name="cd_back">Back</string>
+
+    <!-- Summary screen -->
+    <string name="summary_title">Your progress</string>
+    <string name="summary_completed_today">completed today</string>
+    <string name="summary_stat_focus_time">Focus time</string>
+    <string name="summary_stat_sessions">Sessions</string>
+    <string name="summary_stat_tasks_done">Tasks done</string>
+    <string name="summary_stat_day_streak">Day streak</string>
+    <string name="summary_task_breakdown">Task breakdown</string>
+    <string name="summary_this_week">This week</string>
+    <string name="summary_achievements">Achievements</string>
+    <string name="summary_status_done">Done</string>
+    <string name="summary_status_pending">Pending</string>
+
+    <string-array name="motivational_quotes">
+        <item>Small steps every day lead to big results.</item>
+        <item>Focus on one thing. Do it well.</item>
+        <item>Progress, not perfection.</item>
+        <item>The one task done today matters more than ten planned for tomorrow.</item>
+        <item>Discipline is choosing what you want most over what you want now.</item>
+        <item>You don\'t need more hours. You need more focus.</item>
+        <item>Consistency beats intensity.</item>
+    </string-array>
+
+    <!-- Achievements -->
+    <string name="achievement_first_focus_title">First focus</string>
+    <string name="achievement_first_focus_desc">Complete your first pomodoro session</string>
+    <string name="achievement_power_hour_title">Power hour</string>
+    <string name="achievement_power_hour_desc">Focus for 60+ minutes in a single day</string>
+    <string name="achievement_week_warrior_title">Week warrior</string>
+    <string name="achievement_week_warrior_desc">Reach a 7-day streak</string>
+    <string name="achievement_taskmaster_title">Taskmaster</string>
+    <string name="achievement_taskmaster_desc">Complete 20 tasks in total</string>
+
+    <!-- Day complete screen -->
+    <string name="daycomplete_title">All tasks complete!</string>
+    <string name="daycomplete_subtitle">You focused on what mattered today. Nice work.</string>
+    <string name="daycomplete_summary_line">%1$dm focused · %2$d sessions</string>
+    <string name="daycomplete_stat_tasks">Tasks</string>
+    <string name="daycomplete_stat_streak">Streak</string>
+    <string name="daycomplete_view_summary">View full summary</string>
+    <string name="daycomplete_plan_tomorrow">Plan tomorrow</string>
+
+    <!-- Notifications -->
+    <string name="notif_channel_alerts_name">Timer alerts</string>
+    <string name="notif_channel_alerts_desc">Alerts when a focus or break session finishes</string>
+    <string name="notif_channel_running_name">Active timer</string>
+    <string name="notif_channel_running_desc">Shows the live Pomodoro countdown while a session is running</string>
+    <string name="notif_focus_complete_title">Focus session complete</string>
+    <string name="notif_focus_complete_text">Nice work. Take a break or start another session.</string>
+    <string name="notif_break_complete_title">Break\'s over</string>
+    <string name="notif_break_complete_text">Ready to focus again?</string>
+    <string name="notif_running_focus_title">Focus session running</string>
+    <string name="notif_running_break_title">Break in progress</string>
+    <string name="notif_running_long_break_title">Long break in progress</string>
+    <string name="notif_running_text">Daily Focus is tracking your session</string>
+    <string name="notif_daily_reminder_channel_name">Daily reminders</string>
+    <string name="notif_daily_reminder_title">Set today\'s focus</string>
+    <string name="notif_daily_reminder_text">What\'s the one thing you want to get done today?</string>
+
+    <!-- Foko -->
+    <string name="foko_settings_title">Show Foko helper</string>
+    <string name="foko_settings_desc">A friendly owl that reacts to your progress</string>
+    <string name="foko_cd_speech_bubble">Foko says</string>
+
+    <string-array name="foko_no_tasks">
+        <item>What\'s your mission today?</item>
+        <item>Pick ONE thing to crush today!</item>
+        <item>Ready when you are!</item>
+        <item>What matters most right now?</item>
+    </string-array>
+
+    <string-array name="foko_timer_started">
+        <item>You\'ve got this! Let\'s go.</item>
+        <item>Focus mode: activated!</item>
+        <item>Deep work time. No distractions.</item>
+        <item>Let\'s make it count!</item>
+    </string-array>
+
+    <string-array name="foko_timer_running">
+        <item>You\'re doing great, keep going!</item>
+        <item>Stay in the zone!</item>
+        <item>Impressive focus!</item>
+        <item>Almost there, keep pushing!</item>
+    </string-array>
+
+    <string-array name="foko_timer_paused">
+        <item>Taking a quick break?</item>
+        <item>Ready to jump back in?</item>
+        <item>I\'ll be here when you\'re ready.</item>
+    </string-array>
+
+    <string-array name="foko_task_completed">
+        <item>Nice one! Checked off!</item>
+        <item>One down! Keep the momentum!</item>
+        <item>That\'s what I\'m talking about!</item>
+        <item>Progress feels good, right?</item>
+    </string-array>
+
+    <string-array name="foko_break_started">
+        <item>Time to recharge.</item>
+        <item>Take a stretch, you earned it.</item>
+        <item>Rest is part of productivity.</item>
+        <item>Breathe in... breathe out...</item>
+    </string-array>
+
+    <string-array name="foko_all_tasks_done">
+        <item>You crushed it today!</item>
+        <item>All done! What a legend!</item>
+        <item>100%! Take a bow!</item>
+        <item>Tomorrow\'s gonna be great too!</item>
+    </string-array>
+
+    <string-array name="foko_returning_user">
+        <item>Welcome back! Let\'s focus.</item>
+        <item>Good to see you!</item>
+        <item>Ready for another great day?</item>
+    </string-array>
+
+    <string name="foko_streak_3">3-day streak! Building a habit!</string>
+    <string name="foko_streak_7">7 days straight! Unstoppable!</string>
+    <string name="foko_streak_14">2 weeks! You\'re on fire!</string>
+    <string name="foko_streak_30">30 DAYS! You\'re a focus master!</string>
+</resources>

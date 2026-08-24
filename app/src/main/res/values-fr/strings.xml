@@ -1,0 +1,109 @@
+<resources>
+    <string name="app_name">Daily Focus</string>
+
+    <!-- Home screen -->
+    <string name="home_main_focus">Objectif principal</string>
+    <string name="home_set_main_focus">Définis ton objectif du jour</string>
+    <string name="home_secondary_tasks">Tâches secondaires</string>
+    <string name="home_add_task_left">Ajouter une tâche (%1$d restantes)</string>
+    <string name="home_stats">Statistiques</string>
+    <string name="home_today_progress">Progression du jour</string>
+    <string name="home_sessions_today">Sessions aujourd\'hui : %1$d</string>
+    <string name="home_new_session">Nouvelle session</string>
+    <string name="home_take_break">Faire une pause</string>
+    <string name="home_take_long_break">Faire une longue pause</string>
+    <string name="home_pause">Pause</string>
+    <string name="home_resume">Reprendre</string>
+    <string name="home_start">Démarrer</string>
+    <string name="home_add_secondary_task_title">Ajouter une tâche secondaire</string>
+    <string name="home_task_field_label">Tâche</string>
+    <string name="home_add_task_button">Ajouter</string>
+    <string name="home_focus_time_label">Temps de concentration</string>
+    <string name="home_completed_label">Terminé</string>
+    <string name="home_sessions_suffix">%1$d sessions</string>
+    <string name="home_minutes_suffix">%1$d min</string>
+
+    <!-- Timer modes -->
+    <string name="timer_mode_focus">Concentration</string>
+    <string name="timer_mode_break">Pause</string>
+    <string name="timer_mode_long_break">Longue pause</string>
+
+    <!-- Timer settings sheet -->
+    <string name="timer_settings_title">Réglages du minuteur</string>
+    <string name="timer_settings_focus_duration">Durée de concentration</string>
+    <string name="timer_settings_break_duration">Durée de pause</string>
+    <string name="timer_settings_long_break_duration">Durée de la longue pause</string>
+    <string name="timer_settings_long_break_hint">Utilisée automatiquement toutes les 4 sessions de concentration</string>
+    <string name="timer_settings_custom_focus">Minutes personnalisées (1-120)</string>
+    <string name="timer_settings_custom_break">Minutes personnalisées (1-30)</string>
+    <string name="timer_settings_custom_long_break">Minutes personnalisées (1-60)</string>
+    <string name="timer_settings_auto_start_title">Démarrage automatique de la session suivante</string>
+    <string name="timer_settings_auto_start_desc">Enchaîne concentration → pause → concentration sans avoir à appuyer sur Démarrer</string>
+    <string name="timer_settings_done">Terminé</string>
+
+    <!-- Content descriptions -->
+    <string name="cd_apply">Appliquer</string>
+    <string name="cd_reset">Réinitialiser</string>
+    <string name="cd_delete_task">Supprimer la tâche</string>
+    <string name="cd_task_done">Terminée</string>
+    <string name="cd_back">Retour</string>
+
+    <!-- Summary screen -->
+    <string name="summary_title">Ta progression</string>
+    <string name="summary_completed_today">terminé aujourd\'hui</string>
+    <string name="summary_stat_focus_time">Temps de concentration</string>
+    <string name="summary_stat_sessions">Sessions</string>
+    <string name="summary_stat_tasks_done">Tâches terminées</string>
+    <string name="summary_stat_day_streak">Série de jours</string>
+    <string name="summary_task_breakdown">Détail des tâches</string>
+    <string name="summary_this_week">Cette semaine</string>
+    <string name="summary_achievements">Succès</string>
+    <string name="summary_status_done">Terminée</string>
+    <string name="summary_status_pending">En attente</string>
+
+    <string-array name="motivational_quotes">
+        <item>De petits pas chaque jour mènent à de grands résultats.</item>
+        <item>Concentre-toi sur une seule chose. Et fais-la bien.</item>
+        <item>Le progrès, pas la perfection.</item>
+        <item>La tâche accomplie aujourd\'hui compte plus que dix prévues pour demain.</item>
+        <item>La discipline, c\'est choisir ce que tu veux vraiment plutôt que ce que tu veux là, maintenant.</item>
+        <item>Tu n\'as pas besoin de plus d\'heures. Tu as besoin de plus de concentration.</item>
+        <item>La régularité l\'emporte sur l\'intensité.</item>
+    </string-array>
+
+    <!-- Achievements -->
+    <string name="achievement_first_focus_title">Première concentration</string>
+    <string name="achievement_first_focus_desc">Termine ta première session pomodoro</string>
+    <string name="achievement_power_hour_title">Heure de puissance</string>
+    <string name="achievement_power_hour_desc">Concentre-toi 60+ minutes en une seule journée</string>
+    <string name="achievement_week_warrior_title">Guerrier de la semaine</string>
+    <string name="achievement_week_warrior_desc">Atteins une série de 7 jours</string>
+    <string name="achievement_taskmaster_title">Maître des tâches</string>
+    <string name="achievement_taskmaster_desc">Termine 20 tâches au total</string>
+
+    <!-- Day complete screen -->
+    <string name="daycomplete_title">Toutes les tâches sont terminées !</string>
+    <string name="daycomplete_subtitle">Tu t\'es concentré sur ce qui comptait aujourd\'hui. Bravo.</string>
+    <string name="daycomplete_summary_line">%1$d min de concentration · %2$d sessions</string>
+    <string name="daycomplete_stat_tasks">Tâches</string>
+    <string name="daycomplete_stat_streak">Série</string>
+    <string name="daycomplete_view_summary">Voir le résumé complet</string>
+    <string name="daycomplete_plan_tomorrow">Planifier demain</string>
+
+    <!-- Notifications -->
+    <string name="notif_channel_alerts_name">Alertes du minuteur</string>
+    <string name="notif_channel_alerts_desc">T\'alerte quand une session de concentration ou de pause se termine</string>
+    <string name="notif_channel_running_name">Minuteur actif</string>
+    <string name="notif_channel_running_desc">Affiche le compte à rebours Pomodoro pendant une session en cours</string>
+    <string name="notif_focus_complete_title">Session de concentration terminée</string>
+    <string name="notif_focus_complete_text">Bravo. Fais une pause ou lance une nouvelle session.</string>
+    <string name="notif_break_complete_title">La pause est terminée</string>
+    <string name="notif_break_complete_text">Prêt à te reconcentrer ?</string>
+    <string name="notif_running_focus_title">Session de concentration en cours</string>
+    <string name="notif_running_break_title">Pause en cours</string>
+    <string name="notif_running_long_break_title">Longue pause en cours</string>
+    <string name="notif_running_text">Daily Focus suit ta session</string>
+    <string name="notif_daily_reminder_channel_name">Rappels quotidiens</string>
+    <string name="notif_daily_reminder_title">Définis ton objectif du jour</string>
+    <string name="notif_daily_reminder_text">Quelle est la seule chose que tu veux accomplir aujourd\'hui ?</string>
+</resources>
