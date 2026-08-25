@@ -280,8 +280,10 @@ class HomeViewModel(
     }
 
     fun startNewFocusSession() {
+        // No stopTimerService() here: this is only ever reached right after onTimerFinished(),
+        // which already stopped the service unless auto-start is about to restart it immediately
+        // (stopping then instantly restarting the same foreground service crashes the app).
         timerJob?.cancel()
-        stopTimerService()
         _timerState.update {
             val totalSeconds = it.focusMinutes * 60
             it.copy(
@@ -295,8 +297,8 @@ class HomeViewModel(
     }
 
     fun takeABreak() {
+        // See startNewFocusSession() -- no stopTimerService() here for the same reason.
         timerJob?.cancel()
-        stopTimerService()
         _timerState.update {
             val useLong = it.nextBreakIsLong
             val totalSeconds = (if (useLong) it.longBreakMinutes else it.breakMinutes) * 60
@@ -353,7 +355,6 @@ class HomeViewModel(
     private fun onTimerFinished() {
         val finishedState = _timerState.value
         _timerState.update { it.copy(status = TimerStatus.FINISHED) }
-        stopTimerService()
         playCompletionAlert(finishedState.mode)
 
         if (finishedState.mode == TimerMode.FOCUS) {
@@ -376,8 +377,19 @@ class HomeViewModel(
         }
     }
 
+    /**
+     * Stopping the foreground service and immediately calling startForegroundService() again
+     * for the next phase is a real Android race (ForegroundServiceDidNotStartInTimeException) --
+     * the OS can tear the service down mid-restart and crash the app. So when auto-start is on,
+     * we skip the stop entirely and let the next startTimerService() call simply update the
+     * still-running service in place; we only stop it when the timer is actually staying idle.
+     */
     private suspend fun maybeAutoStartNext(finishedMode: TimerMode) {
-        if (!prefsStore.userPrefs.first().autoStartNextSession) return
+        val autoStart = prefsStore.userPrefs.first().autoStartNextSession
+        if (!autoStart) {
+            stopTimerService()
+            return
+        }
         if (finishedMode == TimerMode.FOCUS) takeABreak() else startNewFocusSession()
         startTimer()
     }
