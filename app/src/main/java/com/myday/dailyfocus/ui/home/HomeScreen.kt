@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -58,6 +59,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -505,11 +507,52 @@ private fun SettingsBottomSheet(
     onShowFokoChange: (Boolean) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
-    var customFocus by remember { mutableStateOf("") }
-    var customBreak by remember { mutableStateOf("") }
-    var customLongBreak by remember { mutableStateOf("") }
+    val focusPresets = remember { listOf(15, 25, 45, 60) }
+    val breakPresets = remember { listOf(3, 5, 10, 15) }
+    val longBreakPresets = remember { listOf(15, 20, 30, 45) }
 
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+    // Pre-fill each custom field with the currently active duration whenever it isn't one of the
+    // presets, so reopening Settings shows what's actually set instead of a blank box with no
+    // preset highlighted either. Keyed on the prop so it re-syncs after a commit round-trips
+    // through prefs, but won't clobber text the user is mid-way through typing.
+    var customFocus by remember(focusMinutes) {
+        mutableStateOf(if (focusMinutes in focusPresets) "" else focusMinutes.toString())
+    }
+    var customBreak by remember(breakMinutes) {
+        mutableStateOf(if (breakMinutes in breakPresets) "" else breakMinutes.toString())
+    }
+    var customLongBreak by remember(longBreakMinutes) {
+        mutableStateOf(if (longBreakMinutes in longBreakPresets) "" else longBreakMinutes.toString())
+    }
+
+    fun commitCustomFocus() {
+        val minutes = customFocus.toIntOrNull()?.coerceIn(1, 120) ?: return
+        onFocusChange(minutes)
+        customFocus = minutes.toString()
+    }
+    fun commitCustomBreak() {
+        val minutes = customBreak.toIntOrNull()?.coerceIn(1, 30) ?: return
+        onBreakChange(minutes)
+        customBreak = minutes.toString()
+    }
+    fun commitCustomLongBreak() {
+        val minutes = customLongBreak.toIntOrNull()?.coerceIn(1, 60) ?: return
+        onLongBreakChange(minutes)
+        customLongBreak = minutes.toString()
+    }
+    fun commitAllPending() {
+        if (customFocus.isNotBlank()) commitCustomFocus()
+        if (customBreak.isNotBlank()) commitCustomBreak()
+        if (customLongBreak.isNotBlank()) commitCustomLongBreak()
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = {
+            commitAllPending()
+            onDismiss()
+        },
+        sheetState = sheetState
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -521,23 +564,21 @@ private fun SettingsBottomSheet(
 
             Text(text = stringResource(R.string.timer_settings_focus_duration), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             DurationPresetRow(
-                presets = listOf(15, 25, 45, 60),
+                presets = focusPresets,
                 selected = focusMinutes,
-                onSelect = onFocusChange
+                onSelect = { customFocus = ""; onFocusChange(it) }
             )
             OutlinedTextField(
                 value = customFocus,
                 onValueChange = { customFocus = it.filter { c -> c.isDigit() }.take(3) },
                 label = { Text(stringResource(R.string.timer_settings_custom_focus)) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { commitCustomFocus() }),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 trailingIcon = {
                     if (customFocus.isNotBlank()) {
-                        IconButton(onClick = {
-                            customFocus.toIntOrNull()?.let { onFocusChange(it.coerceIn(1, 120)) }
-                            customFocus = ""
-                        }) {
+                        IconButton(onClick = { commitCustomFocus() }) {
                             Icon(imageVector = Icons.Default.Add, contentDescription = stringResource(R.string.cd_apply))
                         }
                     }
@@ -546,23 +587,21 @@ private fun SettingsBottomSheet(
 
             Text(text = stringResource(R.string.timer_settings_break_duration), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             DurationPresetRow(
-                presets = listOf(3, 5, 10, 15),
+                presets = breakPresets,
                 selected = breakMinutes,
-                onSelect = onBreakChange
+                onSelect = { customBreak = ""; onBreakChange(it) }
             )
             OutlinedTextField(
                 value = customBreak,
                 onValueChange = { customBreak = it.filter { c -> c.isDigit() }.take(2) },
                 label = { Text(stringResource(R.string.timer_settings_custom_break)) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { commitCustomBreak() }),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 trailingIcon = {
                     if (customBreak.isNotBlank()) {
-                        IconButton(onClick = {
-                            customBreak.toIntOrNull()?.let { onBreakChange(it.coerceIn(1, 30)) }
-                            customBreak = ""
-                        }) {
+                        IconButton(onClick = { commitCustomBreak() }) {
                             Icon(imageVector = Icons.Default.Add, contentDescription = stringResource(R.string.cd_apply))
                         }
                     }
@@ -576,23 +615,21 @@ private fun SettingsBottomSheet(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             DurationPresetRow(
-                presets = listOf(15, 20, 30, 45),
+                presets = longBreakPresets,
                 selected = longBreakMinutes,
-                onSelect = onLongBreakChange
+                onSelect = { customLongBreak = ""; onLongBreakChange(it) }
             )
             OutlinedTextField(
                 value = customLongBreak,
                 onValueChange = { customLongBreak = it.filter { c -> c.isDigit() }.take(2) },
                 label = { Text(stringResource(R.string.timer_settings_custom_long_break)) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { commitCustomLongBreak() }),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 trailingIcon = {
                     if (customLongBreak.isNotBlank()) {
-                        IconButton(onClick = {
-                            customLongBreak.toIntOrNull()?.let { onLongBreakChange(it.coerceIn(1, 60)) }
-                            customLongBreak = ""
-                        }) {
+                        IconButton(onClick = { commitCustomLongBreak() }) {
                             Icon(imageVector = Icons.Default.Add, contentDescription = stringResource(R.string.cd_apply))
                         }
                     }
@@ -639,7 +676,13 @@ private fun SettingsBottomSheet(
                 Switch(checked = showFoko, onCheckedChange = onShowFokoChange)
             }
 
-            Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
+            Button(
+                onClick = {
+                    commitAllPending()
+                    onDismiss()
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text(stringResource(R.string.timer_settings_done))
             }
         }
