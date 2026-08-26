@@ -41,6 +41,9 @@
     <string name="timer_settings_auto_start_desc">Enchaîne concentration → pause → concentration sans avoir à appuyer sur Démarrer</string>
     <string name="timer_settings_done">Terminé</string>
 
+    <string name="settings_language_title">Langue</string>
+    <string name="settings_language_system_default">Langue du système</string>
+
     <!-- Content descriptions -->
     <string name="cd_apply">Appliquer</string>
     <string name="cd_reset">Réinitialiser</string>

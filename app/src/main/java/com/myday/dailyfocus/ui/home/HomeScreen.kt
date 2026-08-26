@@ -3,6 +3,8 @@ package com.myday.dailyfocus.ui.home
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,6 +33,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -61,7 +65,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -556,6 +563,7 @@ private fun SettingsBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp)
                 .padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -676,6 +684,8 @@ private fun SettingsBottomSheet(
                 Switch(checked = showFoko, onCheckedChange = onShowFokoChange)
             }
 
+            LanguageSelector()
+
             Button(
                 onClick = {
                     commitAllPending()
@@ -684,6 +694,57 @@ private fun SettingsBottomSheet(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.timer_settings_done))
+            }
+        }
+    }
+}
+
+private data class LanguageOption(val tag: String?, val nativeName: String)
+
+@Composable
+private fun LanguageSelector() {
+    val systemDefaultLabel = stringResource(R.string.settings_language_system_default)
+    val options = remember(systemDefaultLabel) {
+        listOf(
+            LanguageOption(null, systemDefaultLabel),
+            LanguageOption("en", "English"),
+            LanguageOption("de", "Deutsch"),
+            LanguageOption("es", "Español"),
+            LanguageOption("fr", "Français")
+        )
+    }
+    var expanded by remember { mutableStateOf(false) }
+    var selectedTag by remember {
+        mutableStateOf(AppCompatDelegate.getApplicationLocales().get(0)?.language)
+    }
+    val selectedLabel = options.firstOrNull { it.tag == selectedTag }?.nativeName ?: systemDefaultLabel
+
+    Column {
+        Text(
+            text = stringResource(R.string.settings_language_title),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold
+        )
+        Box {
+            OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
+                Text(selectedLabel, modifier = Modifier.weight(1f), textAlign = TextAlign.Start)
+            }
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                options.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option.nativeName) },
+                        onClick = {
+                            expanded = false
+                            selectedTag = option.tag
+                            val locales = if (option.tag == null) {
+                                LocaleListCompat.getEmptyLocaleList()
+                            } else {
+                                LocaleListCompat.forLanguageTags(option.tag)
+                            }
+                            AppCompatDelegate.setApplicationLocales(locales)
+                        }
+                    )
+                }
             }
         }
     }

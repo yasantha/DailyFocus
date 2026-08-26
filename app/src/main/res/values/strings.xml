@@ -41,6 +41,9 @@
     <string name="timer_settings_auto_start_desc">Chains focus → break → focus without tapping Start</string>
     <string name="timer_settings_done">Done</string>
 
+    <string name="settings_language_title">Language</string>
+    <string name="settings_language_system_default">System default</string>
+
     <!-- Content descriptions -->
     <string name="cd_apply">Apply</string>
     <string name="cd_reset">Reset</string>

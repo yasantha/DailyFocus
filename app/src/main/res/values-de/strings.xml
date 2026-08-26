@@ -41,6 +41,9 @@
     <string name="timer_settings_auto_start_desc">Verkettet Fokus → Pause → Fokus, ohne dass du auf Start tippen musst</string>
     <string name="timer_settings_done">Fertig</string>
 
+    <string name="settings_language_title">Sprache</string>
+    <string name="settings_language_system_default">Systemstandard</string>
+
     <!-- Content descriptions -->
     <string name="cd_apply">Übernehmen</string>
     <string name="cd_reset">Zurücksetzen</string>

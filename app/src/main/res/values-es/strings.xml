@@ -41,6 +41,9 @@
     <string name="timer_settings_auto_start_desc">Encadena enfoque → descanso → enfoque sin tener que pulsar Empezar</string>
     <string name="timer_settings_done">Listo</string>
 
+    <string name="settings_language_title">Idioma</string>
+    <string name="settings_language_system_default">Predeterminado del sistema</string>
+
     <!-- Content descriptions -->
     <string name="cd_apply">Aplicar</string>
     <string name="cd_reset">Reiniciar</string>
