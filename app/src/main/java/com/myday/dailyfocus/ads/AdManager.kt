@@ -18,7 +18,7 @@ import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 
 object AdIds {
-    const val BANNER_AD_UNIT_ID = "ca-app-pub-3940256099942544/6300978111"
+    const val BANNER_AD_UNIT_ID = "ca-app-pub-6345809643366034/6929708105"
     const val INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"
 }
 
@@ -80,7 +80,14 @@ fun BannerAdView(modifier: Modifier = Modifier) {
             AdView(context).apply {
                 setAdSize(AdSize.BANNER)
                 adUnitId = AdIds.BANNER_AD_UNIT_ID
-                adListener = object : AdListener() {}
+                adListener = object : AdListener() {
+                    override fun onAdFailedToLoad(error: LoadAdError) {
+                        android.util.Log.e("AdMob", "Banner failed to load: ${error.message}")
+                    }
+                    override fun onAdLoaded() {
+                        android.util.Log.d("AdMob", "Banner loaded successfully")
+                    }
+                }
                 loadAd(AdRequest.Builder().build())
             }
         }
