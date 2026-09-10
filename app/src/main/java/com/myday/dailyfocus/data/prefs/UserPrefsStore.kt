@@ -22,7 +22,10 @@ data class UserPrefs(
     val lastCompletedDate: String = "",
     val totalSessionsAllTime: Int = 0,
     val totalTasksCompletedAllTime: Int = 0,
-    val bestDayFocusSeconds: Long = 0
+    val bestDayFocusSeconds: Long = 0,
+    val dailyGoalMinutes: Int = 120,
+    val streakThresholdMinutes: Int = 25,
+    val hasCompletedOnboarding: Boolean = false
 )
 
 class UserPrefsStore(private val context: Context) {
@@ -38,6 +41,9 @@ class UserPrefsStore(private val context: Context) {
         val TOTAL_SESSIONS = intPreferencesKey("total_sessions_all_time")
         val TOTAL_TASKS_COMPLETED = intPreferencesKey("total_tasks_completed_all_time")
         val BEST_DAY_FOCUS_SECONDS = longPreferencesKey("best_day_focus_seconds")
+        val DAILY_GOAL_MINUTES = intPreferencesKey("daily_goal_minutes")
+        val STREAK_THRESHOLD_MINUTES = intPreferencesKey("streak_threshold_minutes")
+        val HAS_COMPLETED_ONBOARDING = booleanPreferencesKey("has_completed_onboarding")
     }
 
     val userPrefs: Flow<UserPrefs> = context.dataStore.data.map { prefs ->
@@ -51,8 +57,23 @@ class UserPrefsStore(private val context: Context) {
             lastCompletedDate = prefs[Keys.LAST_COMPLETED_DATE] ?: "",
             totalSessionsAllTime = prefs[Keys.TOTAL_SESSIONS] ?: 0,
             totalTasksCompletedAllTime = prefs[Keys.TOTAL_TASKS_COMPLETED] ?: 0,
-            bestDayFocusSeconds = prefs[Keys.BEST_DAY_FOCUS_SECONDS] ?: 0
+            bestDayFocusSeconds = prefs[Keys.BEST_DAY_FOCUS_SECONDS] ?: 0,
+            dailyGoalMinutes = prefs[Keys.DAILY_GOAL_MINUTES] ?: 120,
+            streakThresholdMinutes = prefs[Keys.STREAK_THRESHOLD_MINUTES] ?: 25,
+            hasCompletedOnboarding = prefs[Keys.HAS_COMPLETED_ONBOARDING] ?: false
         )
+    }
+
+    suspend fun setHasCompletedOnboarding(completed: Boolean) {
+        context.dataStore.edit { it[Keys.HAS_COMPLETED_ONBOARDING] = completed }
+    }
+
+    suspend fun setDailyGoalMinutes(minutes: Int) {
+        context.dataStore.edit { it[Keys.DAILY_GOAL_MINUTES] = minutes }
+    }
+
+    suspend fun setStreakThresholdMinutes(minutes: Int) {
+        context.dataStore.edit { it[Keys.STREAK_THRESHOLD_MINUTES] = minutes }
     }
 
     suspend fun setFocusMinutes(minutes: Int) {

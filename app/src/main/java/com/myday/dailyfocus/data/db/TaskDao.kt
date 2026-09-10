@@ -13,6 +13,12 @@ interface TaskDao {
     @Query("SELECT * FROM tasks WHERE date = :date ORDER BY isMain DESC, id ASC")
     fun getTasksForDate(date: String): Flow<List<Task>>
 
+    @Query("SELECT * FROM tasks WHERE id IN (:ids)")
+    fun getTasksByIds(ids: List<Long>): Flow<List<Task>>
+
+    @Query("SELECT * FROM tasks WHERE date BETWEEN :startDate AND :endDate")
+    fun getTasksForDateRange(startDate: String, endDate: String): Flow<List<Task>>
+
     @Insert
     suspend fun insert(task: Task): Long
 

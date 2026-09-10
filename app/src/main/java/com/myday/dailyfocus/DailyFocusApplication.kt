@@ -12,7 +12,7 @@ import com.myday.dailyfocus.service.DailyResetWorker
 class DailyFocusApplication : Application(), Configuration.Provider {
 
     val database by lazy { AppDatabase.getInstance(this) }
-    val repository by lazy { TaskRepository(database.taskDao(), database.dailyStatsDao()) }
+    val repository by lazy { TaskRepository(database.taskDao(), database.dailyStatsDao(), database.sessionDao()) }
     val userPrefsStore by lazy { UserPrefsStore(this) }
     val adManager by lazy { AdManager(this) }
 

@@ -20,7 +20,9 @@ import androidx.lifecycle.viewModelScope
 import com.myday.dailyfocus.MainActivity
 import com.myday.dailyfocus.R
 import com.myday.dailyfocus.data.model.DailyStats
+import com.myday.dailyfocus.data.model.Session
 import com.myday.dailyfocus.data.model.Task
+import com.myday.dailyfocus.data.prefs.UserPrefs
 import com.myday.dailyfocus.data.prefs.UserPrefsStore
 import com.myday.dailyfocus.data.repository.TaskRepository
 import com.myday.dailyfocus.service.TimerForegroundService
@@ -58,7 +60,12 @@ data class TimerUiState(
     val nextBreakIsLong: Boolean = false,
     // Which duration the break currently loaded into totalSeconds/remainingSeconds actually is,
     // so pause/resume/reset within that same break keep using the right length.
-    val isCurrentBreakLong: Boolean = false
+    val isCurrentBreakLong: Boolean = false,
+    // The task a FOCUS session is scoped to. Every focus session belongs to exactly one task;
+    // set when the user starts focus on a task, cleared on reset. Carried across into the
+    // following break so the "focusing on X" context survives the break screen too.
+    val activeTaskId: Long? = null,
+    val activeTaskName: String = ""
 ) {
     fun idleDurationMinutes(): Int = when {
         mode == TimerMode.FOCUS -> focusMinutes
@@ -68,6 +75,9 @@ data class TimerUiState(
 }
 
 private const val SESSIONS_PER_LONG_BREAK = 4
+private const val MIN_EARLY_FINISH_SECONDS = 60
+
+data class TaskFocusSummary(val focusSeconds: Int = 0, val sessionCount: Int = 0)
 
 data class HomeUiState(
     val dateLabel: String = "",
@@ -80,8 +90,18 @@ data class HomeUiState(
     val allTasksDone: Boolean = false,
     val autoStartNextSession: Boolean = false,
     val showFoko: Boolean = true,
-    val fokoState: FokoState = FokoState.Idle
-)
+    val fokoState: FokoState = FokoState.Idle,
+    val dailyGoalMinutes: Int = 120,
+    val taskFocusSummaries: Map<Long, TaskFocusSummary> = emptyMap()
+) {
+    val goalSeconds: Int get() = dailyGoalMinutes * 60
+    val goalPercent: Int get() = if (goalSeconds == 0) 0 else ((focusSecondsToday * 100) / goalSeconds).toInt().coerceIn(0, 999)
+    val goalRemainingSeconds: Int get() = (goalSeconds - focusSecondsToday).toInt().coerceAtLeast(0)
+    // Sessions "planned" for the day, used only to size the segmented progress bar and
+    // to label "Session X of Y" -- an estimate from goal length / focus length, not a hard cap.
+    val estimatedSessionsForGoal: Int
+        get() = if (timer.focusMinutes <= 0) 4 else (dailyGoalMinutes / timer.focusMinutes).coerceAtLeast(1)
+}
 
 class HomeViewModel(
     private val repository: TaskRepository,
@@ -104,8 +124,27 @@ class HomeViewModel(
         repository.statsForDate(today),
         prefsStore.userPrefs,
         _timerState,
-        _transientFokoState
-    ) { tasks, stats, prefs, timer, transientFoko ->
+        _transientFokoState,
+        repository.sessionsForDate(today)
+    ) { values ->
+        @Suppress("UNCHECKED_CAST")
+        val tasks = values[0] as List<Task>
+        val stats = values[1] as DailyStats?
+        val prefs = values[2] as UserPrefs
+        val timer = values[3] as TimerUiState
+        val transientFoko = values[4] as FokoState?
+        @Suppress("UNCHECKED_CAST")
+        val sessionsToday = values[5] as List<Session>
+
+        val taskFocusSummaries = sessionsToday
+            .groupBy { it.taskId }
+            .mapValues { (_, sessions) ->
+                TaskFocusSummary(
+                    focusSeconds = sessions.sumOf { it.durationSeconds },
+                    sessionCount = sessions.size
+                )
+            }
+
         val mainTask = tasks.firstOrNull { it.isMain }
         val secondaryTasks = tasks.filter { !it.isMain }
         val allTasks = listOfNotNull(mainTask) + secondaryTasks
@@ -132,7 +171,9 @@ class HomeViewModel(
             allTasksDone = allDone,
             autoStartNextSession = prefs.autoStartNextSession,
             showFoko = prefs.showFoko,
-            fokoState = transientFoko ?: baseFokoState
+            fokoState = transientFoko ?: baseFokoState,
+            dailyGoalMinutes = prefs.dailyGoalMinutes,
+            taskFocusSummaries = taskFocusSummaries
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HomeUiState())
 
@@ -159,10 +200,15 @@ class HomeViewModel(
             }
         }
         viewModelScope.launch {
+            // Streak is earned by focused *time*, not by ticking tasks off -- otherwise a task
+            // can be marked done with zero minutes on the clock and still bank a streak day.
+            // Matches the Progress screen's own rule ("a day counts once you focus for N
+            // minutes"), so the two surfaces never disagree about what a "done" day means.
             var lastAwardedDate = ""
             uiState.collect { state ->
-                if (state.allTasksDone && state.mainTask != null && lastAwardedDate != today) {
-                    val prefs = prefsStore.userPrefs.first()
+                val prefs = prefsStore.userPrefs.first()
+                val thresholdSeconds = prefs.streakThresholdMinutes * 60L
+                if (state.focusSecondsToday >= thresholdSeconds && lastAwardedDate != today) {
                     if (prefs.lastCompletedDate != today) {
                         val newStreak = if (isYesterday(prefs.lastCompletedDate)) prefs.currentStreak + 1 else 1
                         prefsStore.setStreak(newStreak, today)
@@ -248,6 +294,27 @@ class HomeViewModel(
         viewModelScope.launch { repository.deleteTask(task) }
     }
 
+    /** Starts a focus session scoped to [task] -- the only way a focus timer starts now. */
+    fun startFocusOn(task: Task) {
+        val current = _timerState.value
+        if (current.status == TimerStatus.RUNNING) return
+        if (current.mode != TimerMode.FOCUS || current.status == TimerStatus.IDLE) {
+            _timerState.update {
+                val totalSeconds = it.focusMinutes * 60
+                it.copy(
+                    mode = TimerMode.FOCUS,
+                    totalSeconds = totalSeconds,
+                    remainingSeconds = totalSeconds,
+                    activeTaskId = task.id,
+                    activeTaskName = task.text
+                )
+            }
+        } else {
+            _timerState.update { it.copy(activeTaskId = task.id, activeTaskName = task.text) }
+        }
+        startTimer()
+    }
+
     fun startTimer() {
         val current = _timerState.value
         if (current.status == TimerStatus.RUNNING) return
@@ -275,7 +342,91 @@ class HomeViewModel(
         stopTimerService()
         _timerState.update {
             val totalSeconds = it.idleDurationMinutes() * 60
-            it.copy(status = TimerStatus.IDLE, totalSeconds = totalSeconds, remainingSeconds = totalSeconds)
+            it.copy(
+                status = TimerStatus.IDLE,
+                totalSeconds = totalSeconds,
+                remainingSeconds = totalSeconds,
+                activeTaskId = null,
+                activeTaskName = ""
+            )
+        }
+    }
+
+    /**
+     * Ends the current FOCUS session early because the work is actually done, logging the time
+     * really spent (not the planned block) as a real session -- this is what unlocks the "done"
+     * checkmark for early finishers, instead of forcing them to sit out the rest of the timer.
+     * A short floor (below [MIN_EARLY_FINISH_SECONDS]) is ignored: that's "I changed my mind
+     * immediately," not "I finished the work," and letting it count would reopen the same
+     * zero-effort-completion hole the sessionCount gate was added to close.
+     */
+    fun finishFocusEarly() {
+        val elapsedSeconds = elapsedFocusSecondsOrNull() ?: return
+        val taskId = _timerState.value.activeTaskId
+        timerJob?.cancel()
+        stopTimerService()
+        logFocusSeconds(elapsedSeconds, taskId)
+        _timerState.update {
+            val totalSeconds = it.focusMinutes * 60
+            it.copy(
+                status = TimerStatus.IDLE,
+                totalSeconds = totalSeconds,
+                remainingSeconds = totalSeconds
+                // activeTaskId/activeTaskName deliberately kept -- Today still shows this task as
+                // the one just worked on, with its now-unlocked checkmark, rather than clearing
+                // context the moment the session ends.
+            )
+        }
+    }
+
+    /** Wraps up an overtime session: banks the elapsed time (planned + overtime) and goes idle. */
+    fun wrapUpOvertime() = finishFocusEarly()
+
+    /** Wraps up an overtime session, then immediately starts the break that follows it. */
+    fun wrapUpOvertimeAndTakeBreak() {
+        val elapsedSeconds = elapsedFocusSecondsOrNull() ?: return
+        val taskId = _timerState.value.activeTaskId
+        timerJob?.cancel()
+        logFocusSeconds(elapsedSeconds, taskId)
+        takeABreak()
+        startTimer()
+    }
+
+    /**
+     * During a normal (non-overtime) FOCUS session, adds [minutes] to both the planned and
+     * remaining duration -- an alternative to letting the session run into overtime before
+     * offering more time. No-op once already in overtime; that's what "wrap up" is for.
+     */
+    fun extendFocusSession(minutes: Int) {
+        val current = _timerState.value
+        if (current.mode != TimerMode.FOCUS) return
+        if (current.status != TimerStatus.RUNNING && current.status != TimerStatus.PAUSED) return
+        if (current.remainingSeconds <= 0) return
+        val addSeconds = minutes * 60
+        _timerState.update {
+            it.copy(totalSeconds = it.totalSeconds + addSeconds, remainingSeconds = it.remainingSeconds + addSeconds)
+        }
+    }
+
+    private fun elapsedFocusSecondsOrNull(): Int? {
+        val current = _timerState.value
+        if (current.mode != TimerMode.FOCUS) return null
+        if (current.status != TimerStatus.RUNNING && current.status != TimerStatus.PAUSED) return null
+        val elapsedSeconds = current.totalSeconds - current.remainingSeconds
+        return if (elapsedSeconds < MIN_EARLY_FINISH_SECONDS) null else elapsedSeconds
+    }
+
+    private fun logFocusSeconds(elapsedSeconds: Int, taskId: Long?) {
+        viewModelScope.launch {
+            val existing = repository.statsForDate(today).first() ?: DailyStats(date = today)
+            repository.upsertStats(
+                existing.copy(
+                    focusSeconds = existing.focusSeconds + elapsedSeconds,
+                    sessions = existing.sessions + 1
+                )
+            )
+            taskId?.let { repository.recordSession(it, today, elapsedSeconds) }
+            prefsStore.incrementTotalSessions()
         }
     }
 
@@ -330,15 +481,42 @@ class HomeViewModel(
         viewModelScope.launch { prefsStore.setAutoStartNextSession(enabled) }
     }
 
+    fun setDailyGoalMinutes(minutes: Int) {
+        viewModelScope.launch { prefsStore.setDailyGoalMinutes(minutes.coerceIn(15, 960)) }
+    }
+
+    /**
+     * With auto-start OFF, a FOCUS session hitting 00:00 does not auto-finish -- it flips into
+     * overtime (remainingSeconds keeps going negative) and waits for the user to explicitly wrap
+     * up or take a break, so time spent past the buzzer still gets banked instead of lost. With
+     * auto-start ON the old seamless chaining behavior is preserved unchanged: a focus block that
+     * finishes on its own should flow straight into the next phase, not stop and wait on the user.
+     */
     private fun runTicker() {
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
+            val autoStart = prefsStore.userPrefs.first().autoStartNextSession
             var secondsSinceLastEncouragement = 0
-            while (_timerState.value.status == TimerStatus.RUNNING && _timerState.value.remainingSeconds > 0) {
+            var overtimeAnnounced = false
+            while (_timerState.value.status == TimerStatus.RUNNING) {
+                val snapshot = _timerState.value
+                val hitZeroBreak = snapshot.mode == TimerMode.BREAK && snapshot.remainingSeconds <= 0
+                val hitZeroFocusAutoStart = snapshot.mode == TimerMode.FOCUS && snapshot.remainingSeconds <= 0 && autoStart
+                if (hitZeroBreak || hitZeroFocusAutoStart) break
+
                 delay(1000)
                 if (_timerState.value.status != TimerStatus.RUNNING) return@launch
-                _timerState.update { it.copy(remainingSeconds = (it.remainingSeconds - 1).coerceAtLeast(0)) }
-                if (_timerState.value.mode == TimerMode.FOCUS) {
+                _timerState.update {
+                    val next = it.remainingSeconds - 1
+                    val clamped = if (it.mode == TimerMode.BREAK) next.coerceAtLeast(0) else next
+                    it.copy(remainingSeconds = clamped)
+                }
+                val afterTick = _timerState.value
+                if (afterTick.mode == TimerMode.FOCUS && afterTick.remainingSeconds <= 0 && !overtimeAnnounced && !autoStart) {
+                    overtimeAnnounced = true
+                    playCompletionAlert(TimerMode.FOCUS)
+                }
+                if (afterTick.mode == TimerMode.FOCUS) {
                     secondsSinceLastEncouragement++
                     if (secondsSinceLastEncouragement >= 600) {
                         secondsSinceLastEncouragement = 0
@@ -346,7 +524,8 @@ class HomeViewModel(
                     }
                 }
             }
-            if (_timerState.value.status == TimerStatus.RUNNING && _timerState.value.remainingSeconds == 0) {
+            val finalState = _timerState.value
+            if (finalState.status == TimerStatus.RUNNING && finalState.remainingSeconds <= 0) {
                 onTimerFinished()
             }
         }
@@ -367,6 +546,9 @@ class HomeViewModel(
                         sessions = newSessionCount
                     )
                 )
+                finishedState.activeTaskId?.let { taskId ->
+                    repository.recordSession(taskId, today, finishedState.totalSeconds)
+                }
                 prefsStore.incrementTotalSessions()
                 val longBreakDue = newSessionCount % SESSIONS_PER_LONG_BREAK == 0
                 _timerState.update { it.copy(nextBreakIsLong = longBreakDue) }

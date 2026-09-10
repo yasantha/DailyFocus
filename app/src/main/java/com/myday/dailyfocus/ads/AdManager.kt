@@ -38,10 +38,12 @@ class AdManager(private val context: Context) {
             AdRequest.Builder().build(),
             object : InterstitialAdLoadCallback() {
                 override fun onAdLoaded(ad: InterstitialAd) {
+                    android.util.Log.d("AdMob", "Interstitial loaded successfully")
                     interstitialAd = ad
                 }
 
                 override fun onAdFailedToLoad(error: LoadAdError) {
+                    android.util.Log.e("AdMob", "Interstitial failed to load: ${error.message}")
                     interstitialAd = null
                 }
             }
