@@ -35,6 +35,7 @@ import androidx.navigation.NavController
 import com.myday.dailyfocus.DailyFocusApplication
 import com.myday.dailyfocus.ui.components.BottomNavBar
 import com.myday.dailyfocus.ui.components.BottomNavTab
+import com.myday.dailyfocus.ui.components.countLabel
 import com.myday.dailyfocus.ui.theme.Redesign
 
 @Composable
@@ -159,7 +160,7 @@ private fun SummaryCard(state: ProgressUiState) {
                 }
             }
             Text(
-                text = "${state.sessionsCount} sessions · ${state.daysMetGoal} of ${state.totalDaysInRange} days met the goal",
+                text = "${countLabel(state.sessionsCount, "session")} · ${state.daysMetGoal} of ${countLabel(state.totalDaysInRange, "day")} met the goal",
                 color = Redesign.TextSecondary,
                 fontSize = 14.sp,
                 modifier = Modifier.padding(top = 4.dp)
@@ -216,7 +217,7 @@ private fun ConsistencyCard(state: ProgressUiState) {
         Column(modifier = Modifier.padding(18.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("Consistency", color = Redesign.Ink, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Text("Longest ${state.longestStreakInWindow} days", color = Redesign.TextSecondary, fontSize = 14.sp)
+                Text("Longest ${countLabel(state.longestStreakInWindow, "day")}", color = Redesign.TextSecondary, fontSize = 14.sp)
             }
             LazyVerticalGrid(
                 columns = GridCells.Fixed(7),

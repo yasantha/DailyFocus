@@ -76,6 +76,7 @@ import com.myday.dailyfocus.ads.BannerAdView
 import com.myday.dailyfocus.data.model.Task
 import com.myday.dailyfocus.ui.components.BottomNavBar
 import com.myday.dailyfocus.ui.components.BottomNavTab
+import com.myday.dailyfocus.ui.components.countLabel
 import com.myday.dailyfocus.ui.theme.Redesign
 import kotlinx.coroutines.launch
 
@@ -450,7 +451,7 @@ private fun MainFocusCard(
                     )
                     val focusedMin = (summary?.focusSeconds ?: 0) / 60
                     Text(
-                        text = "${focusedMin}m focused · ${summary?.sessionCount ?: 0} sessions",
+                        text = "${focusedMin}m focused · ${countLabel(summary?.sessionCount ?: 0, "session")}",
                         color = Redesign.TextSecondary,
                         fontSize = 14.sp,
                         modifier = Modifier.padding(top = 4.dp)

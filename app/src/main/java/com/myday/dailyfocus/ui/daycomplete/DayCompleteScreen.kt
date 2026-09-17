@@ -39,6 +39,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.myday.dailyfocus.DailyFocusApplication
+import com.myday.dailyfocus.ui.components.countLabel
 import com.myday.dailyfocus.ui.theme.Redesign
 
 @Composable
@@ -79,14 +80,18 @@ fun DayCompleteScreen(navController: NavController) {
                         letterSpacing = 0.6.sp
                     )
                     Text(
-                        text = "${formatHm(state.totalFocusSeconds)} focused across ${state.taskCount} ${if (state.taskCount == 1) "task" else "tasks"}",
+                        text = "${formatHm(state.totalFocusSeconds)} focused across ${countLabel(state.taskCount, "task")}",
                         color = Redesign.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 28.sp,
                         modifier = Modifier.padding(top = 8.dp)
                     )
                     Text(
-                        text = if (state.goalMet) "Goal met. Your streak is now ${state.streak} days." else "Keep going tomorrow -- streak is ${state.streak} days.",
+                        text = when {
+                            state.goalMet -> "Goal met. Your streak is now ${countLabel(state.streak, "day")}."
+                            state.streak > 0 -> "Keep going tomorrow — your streak is ${countLabel(state.streak, "day")}."
+                            else -> "Focus 25 minutes tomorrow to start a streak."
+                        },
                         color = Redesign.LavenderFill2,
                         fontSize = 15.sp,
                         modifier = Modifier.padding(top = 6.dp)

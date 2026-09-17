@@ -26,7 +26,7 @@ data class EndOfDayUiState(
     val incompleteTasks: List<DayTaskEntry> = emptyList(),
     val sessionsCount: Int = 0,
     val avgSessionSeconds: Int = 0,
-    val bestWindowLabel: String = "--"
+    val bestWindowLabel: String = "—"
 )
 
 class EndOfDayViewModel(
@@ -50,7 +50,7 @@ class EndOfDayViewModel(
         val avgSession = if (sessions.isEmpty()) 0 else totalSeconds / sessions.size
 
         val bestWindow = if (sessions.isEmpty()) {
-            "--"
+            "—"
         } else {
             val hourCounts = sessions.groupingBy {
                 LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(it.completedAtMillis), ZoneId.systemDefault()).hour
