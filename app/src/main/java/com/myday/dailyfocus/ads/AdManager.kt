@@ -16,10 +16,22 @@ import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import com.myday.dailyfocus.BuildConfig
 
+/**
+ * Google's public sample ad units always serve test creatives, regardless of account -- used in
+ * debug builds so local runs never hit the real units (which risks invalid-traffic flags).
+ * Release builds use the real ad units from the AdMob console instead.
+ */
 object AdIds {
-    const val BANNER_AD_UNIT_ID = "ca-app-pub-6345809643366034/6929708105"
-    const val INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"
+    private const val BANNER_TEST_ID = "ca-app-pub-3940256099942544/6300978111"
+    private const val INTERSTITIAL_TEST_ID = "ca-app-pub-3940256099942544/1033173712"
+
+    private const val BANNER_RELEASE_ID = "ca-app-pub-6345809643366034/6929708105"
+    private const val INTERSTITIAL_RELEASE_ID = "ca-app-pub-6345809643366034/9497785837"
+
+    val BANNER_AD_UNIT_ID = if (BuildConfig.DEBUG) BANNER_TEST_ID else BANNER_RELEASE_ID
+    val INTERSTITIAL_AD_UNIT_ID = if (BuildConfig.DEBUG) INTERSTITIAL_TEST_ID else INTERSTITIAL_RELEASE_ID
 }
 
 class AdManager(private val context: Context) {
