@@ -43,6 +43,8 @@
 
     <string name="settings_language_title">Language</string>
     <string name="settings_language_system_default">System default</string>
+    <string name="settings_privacy_title">Privacy settings</string>
+    <string name="settings_privacy_desc">Change how ads use your data</string>
 
     <!-- Content descriptions -->
     <string name="cd_apply">Apply</string>
