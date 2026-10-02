@@ -43,6 +43,8 @@
 
     <string name="settings_language_title">Sprache</string>
     <string name="settings_language_system_default">Systemstandard</string>
+    <string name="settings_privacy_title">Datenschutzeinstellungen</string>
+    <string name="settings_privacy_desc">Festlegen, wie Werbung deine Daten nutzt</string>
 
     <!-- Content descriptions -->
     <string name="cd_apply">Übernehmen</string>
