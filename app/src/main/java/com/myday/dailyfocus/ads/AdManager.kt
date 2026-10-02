@@ -4,8 +4,11 @@ import android.app.Activity
 import android.content.Context
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
@@ -17,6 +20,11 @@ import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.myday.dailyfocus.BuildConfig
+import com.myday.dailyfocus.DailyFocusApplication
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Google's public sample ad units always serve test creatives, regardless of account -- used in
@@ -37,13 +45,26 @@ object AdIds {
 class AdManager(private val context: Context) {
 
     private var interstitialAd: InterstitialAd? = null
+    private val initStarted = AtomicBoolean(false)
+    private val _adsReady = MutableStateFlow(false)
 
-    fun initialize() {
-        MobileAds.initialize(context)
-        loadInterstitial()
+    /** True once the Mobile Ads SDK has been initialized; no ad is requested before this. */
+    val adsReady: StateFlow<Boolean> = _adsReady.asStateFlow()
+
+    /**
+     * Starts the Mobile Ads SDK. Only call this once [ConsentManager.canRequestAds] is true.
+     * Safe to call more than once; only the first call does anything.
+     */
+    fun initializeIfNeeded() {
+        if (!initStarted.compareAndSet(false, true)) return
+        MobileAds.initialize(context) {
+            _adsReady.value = true
+            loadInterstitial()
+        }
     }
 
     fun loadInterstitial() {
+        if (!_adsReady.value) return
         InterstitialAd.load(
             context,
             AdIds.INTERSTITIAL_AD_UNIT_ID,
@@ -88,6 +109,10 @@ class AdManager(private val context: Context) {
 
 @Composable
 fun BannerAdView(modifier: Modifier = Modifier) {
+    val app = LocalContext.current.applicationContext as DailyFocusApplication
+    val adsReady by app.adManager.adsReady.collectAsStateWithLifecycle()
+    // Nothing is shown (and no ad request is made) until consent is resolved and the SDK is ready.
+    if (!adsReady) return
     AndroidView(
         modifier = modifier.fillMaxWidth(),
         factory = { context ->

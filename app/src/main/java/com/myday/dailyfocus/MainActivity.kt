@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -22,6 +23,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        gatherConsentAndStartAds()
         setContent {
             DailyFocusTheme {
                 Surface(
@@ -34,6 +36,26 @@ class MainActivity : AppCompatActivity() {
                     DailyFocusApp()
                 }
             }
+        }
+    }
+
+    /**
+     * Shows the GDPR consent form where required (EEA, UK, Switzerland), then starts ads once
+     * they are allowed. Users who already answered on a previous launch start ads immediately.
+     */
+    private fun gatherConsentAndStartAds() {
+        val app = application as DailyFocusApplication
+        val consent = app.consentManager
+        consent.gatherConsent(this) { error ->
+            if (error != null) {
+                Log.w("Consent", "Consent gathering failed (${error.errorCode}): ${error.message}")
+            }
+            if (consent.canRequestAds) {
+                app.adManager.initializeIfNeeded()
+            }
+        }
+        if (consent.canRequestAds) {
+            app.adManager.initializeIfNeeded()
         }
     }
 
