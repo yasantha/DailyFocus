@@ -43,6 +43,8 @@
 
     <string name="settings_language_title">Idioma</string>
     <string name="settings_language_system_default">Predeterminado del sistema</string>
+    <string name="settings_privacy_title">Ajustes de privacidad</string>
+    <string name="settings_privacy_desc">Cambia cómo usan tus datos los anuncios</string>
 
     <!-- Content descriptions -->
     <string name="cd_apply">Aplicar</string>
