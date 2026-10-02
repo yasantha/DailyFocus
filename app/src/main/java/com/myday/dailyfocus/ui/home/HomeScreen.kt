@@ -93,6 +93,7 @@ fun HomeScreen(navController: NavController) {
         factory = HomeViewModelFactory(app.repository, app.userPrefsStore, app)
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val privacyOptionsRequired by app.consentManager.privacyOptionsRequired.collectAsStateWithLifecycle()
 
     var showSettingsSheet by rememberSaveable { mutableStateOf(false) }
     var showAddMainSheet by rememberSaveable { mutableStateOf(false) }
@@ -263,6 +264,12 @@ fun HomeScreen(navController: NavController) {
             autoStartNextSession = state.autoStartNextSession,
             showFoko = state.showFoko,
             dailyGoalMinutes = state.dailyGoalMinutes,
+            showPrivacyOptions = privacyOptionsRequired,
+            onPrivacyOptionsClick = {
+                (context as? android.app.Activity)?.let { activity ->
+                    app.consentManager.showPrivacyOptionsForm(activity)
+                }
+            },
             onDismiss = { showSettingsSheet = false },
             onFocusChange = viewModel::updateFocusDuration,
             onBreakChange = viewModel::updateBreakDuration,
@@ -661,6 +668,8 @@ private fun SettingsBottomSheet(
     autoStartNextSession: Boolean,
     showFoko: Boolean,
     dailyGoalMinutes: Int,
+    showPrivacyOptions: Boolean,
+    onPrivacyOptionsClick: () -> Unit,
     onDismiss: () -> Unit,
     onFocusChange: (Int) -> Unit,
     onBreakChange: (Int) -> Unit,
@@ -866,6 +875,28 @@ private fun SettingsBottomSheet(
             }
 
             LanguageSelector()
+
+            // Required by Google's EU consent policy: users in the EEA, UK and Switzerland must be
+            // able to change their ad consent choice at any time. Hidden for everyone else.
+            if (showPrivacyOptions) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onPrivacyOptionsClick)
+                        .padding(vertical = 4.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.settings_privacy_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = stringResource(R.string.settings_privacy_desc),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
 
             Button(
                 onClick = {
